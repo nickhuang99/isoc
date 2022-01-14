@@ -64,7 +64,12 @@ using namespace std;
   OP(SINGLE_QUOTE,      "'")	\
   OP(DOUBLE_QUOTE,      "\"")
 
-
+//#define OP(name, str) name,
+//enum TokenEnum{TTYPE_TABLE};
+//#undef OP
+#define OP(name,str) {str, "#name"},
+map<string, string> TokenMap={TTYPE_TABLE};
+#undef OP
 #define ALIAS_OPERATOR \
   	  	OP("and",	AND_AND) \
 		OP("and_eq",	AND_EQ)\
@@ -172,8 +177,6 @@ map<string, vector<vector<string> > > getProduction(const string& bnfFile,
 		ss_token<<quoted(str, str.size()==1?'\'':'"');
 		return ss_token.str();
 	};
-
-
 	auto getTerminalToken=[quoteString,alphaToken,getTerminalStr,&terminalTokens]
 						   (const string& str)->string{
 		auto makeSureCapitalize=[](const string& str, string&token){
@@ -182,70 +185,13 @@ map<string, vector<vector<string> > > getProduction(const string& bnfFile,
 				return std::toupper(c, std::locale("C"));
 			});
 		};
-
 		string token;
-		if (str.size() == 1 && std::isalnum(str[0], std::locale("C"))){
-			//token="'"+str+"'";
-			token="LITERAL";
-			// "R": 'R'
-			terminalTokens.insert(make_pair(token, quoteString(str)));
-			//return token; //'R'
-		}else if (str=="ll"){
-			token="LONG_LONG_L";
-			terminalTokens.insert(make_pair(token, quoteString(str)));
-		}
-		else if (str=="LL"){
-			token="LONG_LONG_H";
-			terminalTokens.insert(make_pair(token, quoteString(str)));
-		}
-		else if (str=="u8"){
-			token="UNICODE_8";
-			terminalTokens.insert(make_pair(token, quoteString(str)));
-		}
-		else if (str[0]=='\\'){
-			token="ESCAPE";
-			if (str=="\\"){
-				//
-			}else if (str=="\\x"){
-				token+="_LX";
-			}else if (str=="\\u"){
-				token+="_LU";
-			}else if (str=="\\U"){
-				token+="_HU";
-			}
-			terminalTokens.insert(make_pair(token, quoteString(str)));
-		}else if(str[0]=='0'){
-			token="ZERO";
-			if (str=="0b"){
-				token+="_LB";
-			}else if (str=="0B"){
-				token+="_HB";
-			}else if (str=="0x"){
-				token+="_LX";
-			}else if (str=="0X"){
-				token+="_HX";
-			}
-			terminalTokens.insert(make_pair(token, quoteString(str)));
-		}
-		else if(std::isupper(str[0], std::locale("C"))){
+		if (isalpha(str[0], locale("C"))){
 			makeSureCapitalize(str, token);
-			terminalTokens.insert(make_pair(token, str));
-		}else if (!std::isalnum(str[0], std::locale("C"))){
-			token=alphaToken(str);
-			terminalTokens.insert(make_pair(token, quoteString(str)));
-		}else if (str=="import-keyword"){
-			token="IMPORT";
-			terminalTokens.insert(make_pair(token, quoteString("import")));
-		}else if (str=="export-keyword"){
-			token="EXPORT";
-			terminalTokens.insert(make_pair(token, quoteString("export")));
-		}else if (str=="module-keyword"){
-			token="MODULE";
-			terminalTokens.insert(make_pair(token, quoteString("module")));
 		}else{
-			makeSureCapitalize(str, token);
-			terminalTokens.insert(make_pair(token, quoteString(str)));
+			token = alphaToken(str);
 		}
+		terminalTokens.insert(make_pair(token, quoteString(str)));
 		return token;
 	};
 	while (std::getline(in, str)){

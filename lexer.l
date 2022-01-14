@@ -86,14 +86,14 @@ c-char								[^\\'\n]|{escape-sequence}
 c-char-sequence						{c-char}+								  
 character-constant					[']{c-char-sequence}[']
 	/********************************start constant*******************************/
-constant							{integer-constant}|{floating-constant}|{enumeration-constant}|{character-constant}
+constant							{integer-constant}|{floating-constant}|{character-constant}
 	/********************************start string literal*******************************/
 
 s-char								[^"\\\n]|{escape-sequence}
 s-char-sequence						{s-char}+
-string-literal						[L]?["]{s-char-sequence}?["]
+string-literal						[L]?[\"]{s-char-sequence}?[\"]
 
-spacetab							[ \t]*
+	/*spacetab							[ \t]**/
 %%
 
 
@@ -221,8 +221,10 @@ spacetab							[ \t]*
 
 	/*ignore GNU attribute */
 	/*"__attribute__"[\\s]*\([\\s]*\([\\s]*{identifier}[\\s]*\)[\\s]*\)	*/	/*{ ; }*/
-
-{identifier}	{ return yy::parser::token::TOK_IDENTIFIER;}
+{constant}				{ return yy::parser::token::TOK_CONSTANT;}
+{string-literal}		{ return yy::parser::token::TOK_STRING_LITERAL;}	
+		
+{identifier}			{ return yy::parser::token::TOK_IDENTIFIER;}
 	
 
 [[:space:][:blank:]]+          { ; /* Ignore whitespace */}
