@@ -93,7 +93,9 @@ s-char								[^"\\\n]|{escape-sequence}
 s-char-sequence						{s-char}+
 string-literal						[L]?[\"]{s-char-sequence}?[\"]
 
-	/*spacetab							[ \t]**/
+spacetab							[ \t]*
+word								[^)(,]+
+parameter-list      				{word}([,]{word})*
 %%
 
 
@@ -220,7 +222,12 @@ string-literal						[L]?[\"]{s-char-sequence}?[\"]
 "^="			{ return yy::parser::token::TOK_XOR_EQ;}
 
 	/*ignore GNU attribute */
-	/*"__attribute__"[\\s]*\([\\s]*\([\\s]*{identifier}[\\s]*\)[\\s]*\)	*/	/*{ ; }*/
+"__attribute__"{spacetab}\({spacetab}\({spacetab}\){spacetab}\) 							{ ; }
+"__attribute__"{spacetab}\({spacetab}\({spacetab}{identifier}{spacetab}\){spacetab}\) 		{ ; }
+"__attribute__"{spacetab}\({spacetab}\({spacetab}{identifier}{spacetab}\({spacetab}{parameter-list}{spacetab}\){spacetab}\){spacetab}\) 	{ ; }
+"__attribute__"{spacetab}\({spacetab}\({spacetab}{parameter-list}{spacetab}\){spacetab}\) 	{ ; }
+"__restrict"																				{ ; }
+"__asm__"{spacetab}[(][^)]+[)]																{ ; }
 {constant}				{ return yy::parser::token::TOK_CONSTANT;}
 {string-literal}		{ return yy::parser::token::TOK_STRING_LITERAL;}	
 		
@@ -264,7 +271,7 @@ int main(int argc, char**argv){
 				if (tk==parser::token::TOK_YYerror){
 					cout<<"["<<yylineno<<"]:\t"<<yytext<<"\tYYerror"<<endl;						
 				}else{
-					cout<<".";
+					cout<<yytext<<endl;
 				}
 				
 										
